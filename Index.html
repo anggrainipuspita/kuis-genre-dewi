@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kuis Interaktif GenRe (Generasi Berencana)</title>
+    <style>
+        :root {
+            --primary: #6C5CE7;
+            --secondary: #A8A5FF;
+            --success: #00B894;
+            --danger: #D63031;
+            --warning: #FFEAA7;
+            --dark: #2D3436;
+            --light: #F9F9FB;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #FFEAA7 0%, #A8A5FF 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            color: var(--dark);
+        }
+
+        .quiz-container {
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 12px 24px rgba(0,0,0,0.15);
+            width: 100%;
+            max-width: 650px;
+            padding: 30px;
+            overflow: hidden;
+            border: 4px solid var(--dark);
+            position: relative;
+        }
+
+        .progress-bar {
+            height: 12px;
+            background-color: #E4E7EB;
+            border-radius: 6px;
+            margin-bottom: 25px;
+            overflow: hidden;
+            border: 2px solid var(--dark);
+        }
+
+        .progress-fill {
+            height: 100%;
+            background-color: var(--primary);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .screen {
+            display: none;
+        }
+
+        .screen.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h1 {
+            font-size: 28px;
+            text-align: center;
+            margin-bottom: 20px;
+            color: var(--primary);
+            text-shadow: 1px 1px 0px var(--dark);
+        }
+
+        .illustration {
+            width: 100%;
+            height: 180px;
+            background-color: var(--light);
+            border-radius: 16px;
+            margin-bottom: 20px;
+            border: 3px dashed var(--secondary);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 50px;
+            position: relative;
+        }
+
+        .question-text {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .options-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .option-btn {
+            background-color: var(--light);
+            border: 3px solid var(--dark);
+            border-radius: 12px;
+            padding: 14px 20px;
+            font-size: 16px;
+            font-weight: 600;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 0 var(--dark);
+        }
+
+        .option-btn:hover:not(:disabled) {
+            background-color: var(--warning);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 0 var(--dark);
+        }
+
+        .option-btn:active:not(:disabled) {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 var(--dark);
+        }
+
+        .option-btn.correct {
+            background-color: var(--success) !important;
+            color: white;
+        }
+
+        .option-btn.wrong {
+            background-color: var(--danger) !important;
+            color: white;
+        }
+
+        .feedback-box {
+            background-color: #F0EFFF;
+            border: 3px solid var(--primary);
+            border-radius: 16px;
+            padding: 20px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .feedback-title {
+            font-weight: 800;
+            font-size: 18px;
+            margin-bottom: 8px;
+        }
+
+        .feedback-box.correct-style .feedback-title {
+            color: var(--success);
+        }
+
+        .feedback-box.wrong-style .feedback-title {
+            color: var(--danger);
+        }
+
+        .next-btn {
+            display: block;
+            width: 100%;
+            background-color: var(--primary);
+            color: white;
+            border: 3px solid var(--dark);
+            border-radius: 12px;
+            padding: 15px;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 20px;
+            box-shadow: 0 4px 0 var(--dark);
+            text-align: center;
+        }
+
+        .next-btn:disabled {
+            background-color: #A29BFE;
+            opacity: 0.6;
+            cursor: not-allowed;
+            box-shadow: 0 4px 0 var(--dark);
+            transform: none;
+        }
+
+        .next-btn:hover:not(:disabled) {
+            background-color: #574BFC;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 0 var(--dark);
+        }
+
+        .timer-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: var(--dark);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .think-timer {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: #FF7675;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .result-score {
+            font-size: 64px;
+            font-weight: 900;
+            color: var(--primary);
+            text-align: center;
+            margin: 20px 0;
+            text-shadow: 2px 2px 0 var(--dark);
+        }
+
+        .motivation-text {
+            font-size: 18px;
+            text-align: center;
+            margin-bottom: 30px;
+            line-height: 1.6;
+            font-weight: 600;
+        }
+
+        .start-btn {
+            display: block;
+            width: 80%;
+            margin: 30px auto 0;
+            background-color: var(--success);
+            color: white;
+            border: 3px solid var(--dark);
+            border-radius: 12px;
+            padding: 15px;
+            font-size: 20px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 6px 0 var(--dark);
+            text-align: center;
+        }
+
+        .start-btn:hover {
+            background-color: #009473;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 0 var(--dark);
+        }
+    </style>
+</head>
+<body>
+
+<div class="quiz-container">
+    <!-- SCREEN 1: START -->
+    <div id="start-screen" class="screen active">
+        <h1>Kuis Interaktif GenRe ✨</h1>
+        <div class="illustration">🎯</div>
+        <p style="text-align: center; font-size: 16px; font-weight: 600; padding: 0 10px;">
+            Yuk, uji pemahamanmu tentang Substansi GenRe, Kependudukan, hingga Isu Krusial Remaja! <br><br>
+            ⚠️ <b>Aturan Main:</b> Waktu berpikir memilih jawaban adalah <b>25 detik</b>. Setelah menjawab, penjelasan akan terkunci selama <b>15 detik</b> agar kamu benar-benar membacanya. Semangat!
+        </p>
+        <button class="start-btn" onclick="startQuiz()">Mulai Kuis!</button>
+    </div>
+
+    <!-- SCREEN 2: QUIZ -->
+    <div id="quiz-screen" class="screen">
+        <div class="progress-bar">
+            <div id="progress-fill" class="progress-fill"></div>
+        </div>
+        
+        <div class="illustration">
+            <span id="question-emoji">💡</span>
+            <div id="think-timer" class="think-timer">Sisa Waktu: 25s</div>
+            <div id="timer-badge" class="timer-badge" style="display: none;">Membaca: 15s</div>
+        </div>
+
+        <div id="question-text" class="question-text">Memuat pertanyaan...</div>
+
+        <div id="options-container" class="options-list">
+            <!-- Pilihan jawaban diisi via JS -->
+        </div>
+
+        <div id="feedback-box" class="feedback-box">
+            <div id="feedback-title" class="feedback-title"></div>
+            <div id="feedback-text"></div>
+        </div>
+
+        <button id="next-btn" class="next-btn" onclick="nextQuestion()" disabled>Pilih Jawaban Dulu</button>
+    </div>
+
+    <!-- SCREEN 3: RESULT -->
+    <div id="result-screen" class="screen">
+        <h1>Hasil Kuis Kamu! 🎉</h1>
+        <div class="result-score" id="result-score">0/100</div>
+        <div class="motivation-text" id="motivation-text"></div>
+        <button class="start-btn" onclick="resetQuiz()">Coba Lagi 🔄</button>
+    </div>
+</div>
+
+<script>
+    const quizData = [
+        {
+            question: "Manakah di bawah ini yang merupakan empat substansi utama program GenRe (Generasi Berencana)?",
+            emoji: "📚",
+            options: [
+                "Kependudukan, Kesehatan Reproduksi, Life Skills, Perencanaan Berkeluarga",
+                "Pendidikan Tinggi, Karir Mapan, Pernikahan Dini, Finansial",
+                "Kesehatan Fisik, Olahraga, Gizi Seimbang, Organisasi",
+                "Wirausaha, Kebudayaan, Kewarganegaraan, Pembagian Sembako",
+                "Pendataan Penduduk, Transmigrasi, Urbanisasi, Mitigasi Bencana"
+            ],
+            correct: 0,
+            explain: "Empat substansi dasar GenRe meliputi: Kependudukan dan Pembangunan Keluarga, Kesehatan Reproduksi Remaja, Life Skills (Keterampilan Hidup), serta Perencanaan Kehidupan Berkeluarga. Semuanya dirancang agar kamu siap menghadapi masa depan secara matang!"
+        },
+        {
+            question: "Tindakan berkomentar tidak senonoh atau menggoda seseorang di jalanan (catcalling) termasuk ke dalam jenis kekerasan...",
+            emoji: "🚫",
+            options: [
+                "Kekerasan Fisik",
+                "Kekerasan Ekonomi",
+                "Kekerasan Seksual secara Verbal",
+                "Bullying Non-Verbal",
+                "Kekerasan Siber (Cyberbullying)"
+            ],
+            correct: 2,
+            explain: "Bersiul, main mata, atau melontarkan komentar bernada seksual di area publik (catcalling) merupakan bentuk kekerasan seksual secara verbal. Hal ini mengganggu kenyamanan dan merendahkan martabat orang lain. Yuk, saling menghormati!"
+        },
+        {
+            question: "Ketika seseorang secara sadar dan berulang-ulang menyebarkan rumor palsu di media sosial untuk menjatuhkan mental temannya, tindakan ini disebut...",
+            emoji: "📱",
+            options: [
+                "Cyberbullying (Perundungan Siber)",
+                "Bercandaan Remaja",
+                "Physical Bullying",
+                "Interaksi Sosial Wajar",
+                "Verbal Bullying Langsung"
+            ],
+            correct: 0,
+            explain: "Cyberbullying adalah segala bentuk perundungan yang memanfaatkan teknologi digital. Menyebarkan rumor palsu, mematikan karakter seseorang lewat medsos, atau meneror lewat chat adalah tindakan merusak yang bisa dipidana!"
+        },
+        {
+            question: "Apa yang dimaksud dengan program 'Quick Win' dalam konteks percepatan program kerja pemerintah atau organisasi?",
+            emoji: "⚡",
+            options: [
+                "Lomba lari cepat memenangkan piala",
+                "Langkah aksi cepat yang mudah dilakukan untuk menghasilkan dampak nyata dalam waktu singkat",
+                "Program jangka panjang yang membutuhkan waktu minimal 10 tahun",
+                "Strategi memenangkan persaingan bisnis secara rahasia",
+                "Aplikasi digital untuk mencari pekerjaan"
+            ],
+            correct: 1,
+            explain: "Quick Win adalah program percepatan berupa langkah nyata yang tidak berbelit-belit, relatif mudah dieksekusi, namun memberikan hasil instan yang signifikan untuk menyelesaikan masalah mendesak."
+        },
+        {
+            question: "Dalam isu stunting dan remaja, apa saja yang termasuk ke dalam fokus 'Genting Quick Win' (Gerakan Penurunan Stunting)?",
+            emoji: "👶",
+            options: [
+                "Pemberian beasiswa luar negeri untuk mahasiswa berprestasi",
+                "Edukasi gizi remaja putri, pencegahan pernikahan dini, dan pengasuhan 1000 Hari Pertama Kehidupan (HPK)",
+                "Pembangunan fasilitas gedung puskesmas megah di kota-kota besar",
+                "Pembagian gadget gratis untuk seluruh balita di pelosok desa",
+                "Pelatihan wirausaha digital khusus bapak-bapak"
+            ],
+            correct: 1,
+            explain: "Genting Quick Win berfokus memutus rantai stunting dari hulu, yaitu dengan memastikan remaja putri tidak anemia, mencegah pernikahan dini (agar panggul & rahim siap), serta mengedukasi pengasuhan pada 1000 Hari Pertama Kehidupan anak."
+        },
+        {
+            question: "Apa kepanjangan dari istilah 'Gema Kencana / Gemenduk Bangga' yang sering digaungkan oleh BKKBN?",
+            emoji: "🇲🇨",
+            options: [
+                "Gerakan Menuju Penduduk Berkeluarga dan Berbahagia",
+                "Gerakan Bersama Pembangunan Pemuda Berwirausaha",
+                "Gerakan Pemberdayaan Ekonomi Penduduk dan Keluarga Bangsa",
+                "Pembangunan Keluarga, Kependudukan, dan Keluarga Berencana (Bangga Kencana)",
+                "Generasi Mandiri Pendukung Pembangunan Keluarga"
+            ],
+            correct: 3,
+            explain: "Program intinya mengacu pada 'Bangga Kencana' (Pembangunan Keluarga, Kependudukan, dan Keluarga Berencana), sebuah keterpaduan program untuk menciptakan keluarga berkualitas dan penduduk tumbuh seimbang."
+        },
+        {
+            question: "Berapakah usia pernikahan ideal yang dikampanyecan oleh program GenRe bagi laki-laki dan perempuan?",
+            emoji: "💍",
+            options: [
+                "Perempuan 17 tahun, Laki-laki 20 tahun",
+                "Perempuan 19 tahun, Laki-laki 19 tahun",
+                "Perempuan minimal 21 tahun, Laki-laki minimal 25 tahun",
+                "Perempuan 25 tahun, Laki-laki 21 tahun",
+                "Bebas, asalkan sudah lulus sekolah dasar"
+            ],
+            correct: 2,
+            explain: "GenRe merekomendasikan usia nikah ideal yaitu minimal 21 tahun untuk perempuan (kesiapan fisik/rahim optimal) dan minimal 25 tahun untuk laki-laki (kesiapan mental dan finansial lebih matang)."
+        },
+        {
+            question: "Jika kamu melihat teman sekelasmu mengalami perundungan (bullying) secara terus-menerus, tindakan terbaik selaku pendidik sebaya atau teman yang baik adalah...",
+            emoji: "🤝",
+            options: [
+                "Ikut tertawa agar dianggap solid oleh geng kelas",
+                "Diam saja karena takut ikut menjadi korban perundungan",
+                "Merekam kejadian diam-diam lalu menjadikannya konten komedi",
+                "Merangkul korban, menegur pelaku secara baik, atau melaporkannya kepada Guru BK/Pihak Berwenang",
+                "Menantang berkelahi sang pelaku di luar sekolah tanpa sepengetahuan guru"
+            ],
+            correct: 3,
+            explain: "Menjadi 'Upstander' (pembela) bukan 'Bystander' (penonton diam). Rangkul korban agar mereka tidak merasa sendiri, lalu laporkan kepada otoritas sekolah (seperti Guru BK) agar ditangani dengan tepat dan aman."
+        },
+        {
+            question: "Mengapa remaja putri menjadi sasaran utama dalam pencegahan stunting sebelum mereka menikah?",
+            emoji: "🩸",
+            options: [
+                "Keperluan kosmetik mengalahkan anggaran pemenuhan gizi",
+                "Karena mereka berisiko tinggi mengalami anemia yang dapat berdampak buruk pada kesehatan janin di masa depan",
+                "Karena remaja putri tidak membutuhkan karbohidrat sama sekali",
+                "Hanya mengikuti tren kesehatan global yang sedang viral",
+                "Karena remaja putri memiliki daya tahan tubuh yang paling lemah dibandingkan kelompok lain"
+            ],
+            correct: 1,
+            explain: "Remaja putri mengalami menstruasi setiap bulan sehingga berisiko terkena anemia (kurang sel darah merah). Jika anemia tidak diobati hingga ia hamil nanti, pasokan nutrisi ke janin terhambat, memicu kelahiran bayi stunting."
+        },
+        {
+            question: "Apa tujuan utama dibentuknya Pusat Informasi dan Konseling Remaja (PIK R) di lingkungan sekolah atau masyarakat?",
+            emoji: "🏠",
+            options: [
+                "Sebagai wadah berjualan produk kreatif remaja",
+                "Tempat berkumpul untuk membicarakan gosip artis terbaru",
+                "Memberikan pelayanan informasi dan konseling tentang perencanaan kehidupan berkeluarga bagi remaja oleh dari dan untuk remaja",
+                "Menghukum siswa-siswi yang melanggar aturan tata tertib sekolah",
+                "Menyediakan tempat bermain game online bersama secara gratis"
+            ],
+            correct: 2,
+            explain: "PIK R adalah wadah dari, oleh, dan untuk remaja. Di sini kamu bisa melakukan konseling sebaya dengan nyaman mengenai kesehatan reproduksi, perencanaan masa depan, tanpa takut dihakimi."
+        }
+    ];
+
+    let currentQuestionIndex = 0;
+    let score = 0;
+    let countdownInterval;
+    let thinkInterval;
+    let thinkTimeLeft = 25;
+
+    const startScreen = document.getElementById('start-screen');
+    const quizScreen = document.getElementById('quiz-screen');
+    const resultScreen = document.getElementById('result-screen');
+    const progressFill = document.getElementById('progress-fill');
+    const questionText = document.getElementById('question-text');
+    const optionsContainer = document.getElementById('options-container');
+    const feedbackBox = document.getElementById('feedback-box');
+    const feedbackTitle = document.getElementById('feedback-title');
+    const feedbackText = document.getElementById('feedback-text');
+    const nextBtn = document.getElementById('next-btn');
+    const timerBadge = document.getElementById('timer-badge');
+    const thinkTimer = document.getElementById('think-timer');
+    const questionEmoji = document.getElementById('question-emoji');
+    const scoreDisplay = document.getElementById('result-score');
+    const motivationText = document.getElementById('motivation-text');
+
+    function startQuiz() {
+        startScreen.classList.remove('active');
+        quizScreen.classList.add('active');
+        showQuestion();
+    }
+
+    function showQuestion() {
+        feedbackBox.style.display = "none";
+        nextBtn.disabled = true;
+        nextBtn.innerText = "Pilih Jawaban Dulu";
+        timerBadge.style.display = "none";
+        thinkTimer.style.display = "block";
+        clearInterval(countdownInterval);
+        clearInterval(thinkInterval);
+
+        const currentQuestion = quizData[currentQuestionIndex];
+        
+        const progressPercent = ((currentQuestionIndex) / quizData.length) * 100;
+        progressFill.style.width = `${progressPercent}%`;
+
+        questionEmoji.innerText = currentQuestion.emoji;
+        questionText.innerText = `${currentQuestionIndex + 1}. ${currentQuestion.question}`;
+
+        optionsContainer.innerHTML = '';
+        currentQuestion.options.forEach((option, index) => {
+            const button = document.createElement('button');
+            button.className = 'option-btn';
+            button.innerText = `${String.fromCharCode(65 + index)}. ${option}`;
+            button.onclick = () => selectOption(index);
+            optionsContainer.appendChild(button);
+        });
+
+        startThinkingTimer(25);
+    }
+
+    function startThinkingTimer(seconds) {
+        thinkTimeLeft = seconds;
+        thinkTimer.innerText = `Sisa Waktu: ${thinkTimeLeft}s`;
+
+        thinkInterval = setInterval(() => {
+            thinkTimeLeft--;
+            thinkTimer.innerText = `Sisa Waktu: ${thinkTimeLeft}s`;
+
+            if (thinkTimeLeft <= 0) {
+                clearInterval(thinkInterval);
+                selectOption(-1);
+            }
+        }, 1000);
+    }
+
+    function selectOption(selectedIndex) {
+        clearInterval(thinkInterval);
+        thinkTimer.style.display = "none";
+
+        const currentQuestion = quizData[currentQuestionIndex];
+        const buttons = optionsContainer.getElementsByClassName('option-btn');
+        
+        for (let i = 0; i < buttons.length; i++) {
+            buttons[i].disabled = true;
+            if (i === currentQuestion.correct) {
+                buttons[i].classList.add('correct');
+            }
+        }
+
+        const isCorrect = (selectedIndex === currentQuestion.correct);
+
+        if (selectedIndex === -1) {
+            feedbackTitle.innerText = "⏰ Waktu Berpikir Habis!";
+            feedbackBox.className = "feedback-box wrong-style";
+        } else if (isCorrect) {
+            score += 10;
+            feedbackTitle.innerText = "🎉 Benar Sekali! Keren!";
+            feedbackBox.className = "feedback-box correct-style";
+        } else {
+            buttons[selectedIndex].classList.add('wrong');
+            feedbackTitle.innerText = "❌ Yah, Jawaban Kurang Tepat";
+            feedbackBox.className = "feedback-box wrong-style";
+        }
+
+        feedbackText.innerHTML = `<b>Pembahasan:</b> ${currentQuestion.explain}`;
+        feedbackBox.style.display = "block";
+
+        startReadingTimer(15);
+    }
+
+    function startReadingTimer(seconds) {
+        let timeLeft = seconds;
+        nextBtn.disabled = true;
+        timerBadge.style.display = "block";
+        timerBadge.innerText = `Membaca: ${timeLeft}s`;
+        nextBtn.innerText = `Baca Pembahasan (${timeLeft}s)`;
+
+        countdownInterval = setInterval(() => {
+            timeLeft--;
+            timerBadge.innerText = `Membaca: ${timeLeft}s`;
+            nextBtn.innerText = `Baca Pembahasan (${timeLeft}s)`;
+
+            if (timeLeft <= 0) {
+                clearInterval(countdownInterval);
+                timerBadge.style.display = "none";
+                nextBtn.disabled = false;
+                if (currentQuestionIndex === quizData.length - 1) {
+                    nextBtn.innerText = "Lihat Hasil Akhir 🏁";
+                } else {
+                    nextBtn.innerText = "Lanjut ke Soal Berikutnya ➡️";
+                }
+            }
+        }, 1000);
+    }
+
+    function nextQuestion() {
+        if (currentQuestionIndex < quizData.length - 1) {
+            currentQuestionIndex++;
+            showQuestion();
+        } else {
+            showResult();
+        }
+    }
+
+    function showResult() {
+        quizScreen.classList.remove('active');
+        resultScreen.classList.add('active');
+        
+        progressFill.style.width = `100%`;
+        scoreDisplay.innerText = `${score} / 100`;
+
+        let motivation = "";
+        if (score >= 80) {
+            motivation = "Luar biasa! Kamu adalah calon Pendidik Sebaya / Konselor Sebaya GenRe yang top banget! Pertahankan pemahaman hebatmu ini untuk bantu teman-teman di sekitarmu! ✨👑";
+        } else if (score >= 50) {
+            motivation = "Sudah cukup bagus! Kamu sudah paham poin-poin dasar GenRe. Yuk, baca-baca lagi biar makin mantap dan bisa menghindari tiga ancaman dasar remaja (TRIAD KRR)! 👍🔥";
+        } else {
+            motivation = "Jangan berkecil hati ya! Kuis ini adalah proses belajar. Yang terpenting kamu sekarang sudah membaca pembahasannya dan tahu mana yang benar. Tetap semangat, Generasi Berencana! 💪🌟";
+        }
+        
+        motivationText.innerText = motivation;
+    }
+
+    function resetQuiz() {
+        currentQuestionIndex = 0;
+        score = 0;
+        resultScreen.classList.remove('active');
+        startScreen.classList.add('active');
+    }
+</script>
+
+</body>
+</html>
